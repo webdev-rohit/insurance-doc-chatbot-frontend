@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Insurance Doc Chatbot</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="auth">
+    <!-- Brand / marketing side -->
+    <aside class="auth__aside">
+      <a class="brand" href="index.html">
+        <span class="brand__logo">🛡️</span>
+        <span>Insurance Doc Chatbot</span>
+      </a>
+      <div class="auth__pitch">
+        <h2>Ask your policy anything.</h2>
+        <p>Upload an insurance document and get accurate, cited answers powered by retrieval-augmented generation.</p>
+        <ul class="auth__features">
+          <li><span class="tick">✓</span> Answers grounded strictly in your uploaded PDFs</li>
+          <li><span class="tick">✓</span> Understands tables, clauses and definitions</li>
+          <li><span class="tick">✓</span> Every response cites its source chunks</li>
+        </ul>
+      </div>
+      <div class="auth__foot">© 2026 Insurance Doc Chatbot</div>
+    </aside>
+
+    <!-- Form side -->
+    <main class="auth__main">
+      <div class="auth__card">
+        <h1>Welcome back</h1>
+        <p class="auth__sub">Sign in to continue to your workspace.</p>
+
+        <form onsubmit="return false;">
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <input class="input" id="email" type="email" placeholder="john.doe@example.com" value="john.doe@example.com" />
+          </div>
+          <div class="field">
+            <div class="row between">
+              <label class="label" for="password" style="margin-bottom:0;">Password</label>
+              <a class="text-sm" href="forgot-password.html">Forgot password?</a>
+            </div>
+            <div class="input-group" style="margin-top:7px;">
+              <input class="input" id="password" type="password" placeholder="••••••••" value="secure_password1" />
+              <button type="button" class="input-group__action">Show</button>
+            </div>
+          </div>
+
+          <button class="btn btn--primary btn--block" type="submit">Sign in</button>
+        </form>
+
+        <p class="auth__alt">Don’t have an account? <a href="register.html">Create one</a></p>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

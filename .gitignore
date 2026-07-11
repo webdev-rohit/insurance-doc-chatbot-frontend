@@ -1,0 +1,28 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.*.local
+
+# TypeScript build cache / composite-project emit
+# (tsconfig.node.json is "composite", so `tsc -b` emits vite.config.js/.d.ts
+# next to the source file — these are generated, not hand-written)
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.log
+
+# Claude Code local settings (machine/user-specific, not shared)
+.claude/settings.local.json
+
+# Ad-hoc screenshots dropped in the project root for review/debugging
+/*.png
+/*.jpg
+/*.jpeg

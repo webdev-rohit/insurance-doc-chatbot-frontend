@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — Insurance Doc Chatbot</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="auth">
+    <aside class="auth__aside">
+      <a class="brand" href="index.html">
+        <span class="brand__logo">🛡️</span>
+        <span>Insurance Doc Chatbot</span>
+      </a>
+      <div class="auth__pitch">
+        <h2>Create your account.</h2>
+        <p>Get started in seconds. We’ll email you a verification link to activate your account.</p>
+        <ul class="auth__features">
+          <li><span class="tick">✓</span> Free to start</li>
+          <li><span class="tick">✓</span> Your documents stay private to you</li>
+          <li><span class="tick">✓</span> Cancel anytime</li>
+        </ul>
+      </div>
+      <div class="auth__foot">© 2026 Insurance Doc Chatbot</div>
+    </aside>
+
+    <main class="auth__main">
+      <div class="auth__card">
+        <h1>Create account</h1>
+        <p class="auth__sub">Enter your details to get started.</p>
+
+        <form onsubmit="return false;">
+          <div class="row gap-12">
+            <div class="field grow">
+              <label class="label" for="first">First name</label>
+              <input class="input" id="first" type="text" placeholder="John" value="John" />
+            </div>
+            <div class="field grow">
+              <label class="label" for="last">Last name</label>
+              <input class="input" id="last" type="text" placeholder="Doe" value="Doe" />
+            </div>
+          </div>
+          <p class="hint" style="margin-top:-8px; margin-bottom:18px;">Letters, spaces, hyphens or apostrophes only · 1–100 chars.</p>
+
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <input class="input" id="email" type="email" placeholder="john.doe@example.com" value="john.doe@example.com" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="password">Password</label>
+            <div class="input-group">
+              <input class="input" id="password" type="password" placeholder="Create a password" value="secure_password1" />
+              <button type="button" class="input-group__action">Show</button>
+            </div>
+            <p class="hint">At least 8 characters, including one letter and one number.</p>
+          </div>
+
+          <button class="btn btn--primary btn--block" type="submit">Create account</button>
+        </form>
+
+        <div class="auth__divider">then</div>
+        <p class="text-sm text-muted" style="text-align:center;">
+          We’ll email you a verification link to activate your account.
+        </p>
+
+        <p class="auth__alt">Already have an account? <a href="login.html">Sign in</a></p>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

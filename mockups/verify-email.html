@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify email — Insurance Doc Chatbot</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="auth">
+    <aside class="auth__aside">
+      <a class="brand" href="index.html">
+        <span class="brand__logo">🛡️</span>
+        <span>Insurance Doc Chatbot</span>
+      </a>
+      <div class="auth__pitch">
+        <h2>One last step.</h2>
+        <p>Confirm your email to activate your account. Login stays blocked until the account is verified.</p>
+      </div>
+      <div class="auth__foot">© 2026 Insurance Doc Chatbot</div>
+    </aside>
+
+    <main class="auth__main">
+      <div class="auth__card">
+        <div class="dropzone__icon" style="margin:0 0 20px;">✉️</div>
+        <h1>Verify your email</h1>
+        <p class="auth__sub">Paste the token from the verification email, or open the link we sent to confirm automatically.</p>
+
+        <form onsubmit="return false;">
+          <div class="field">
+            <label class="label" for="token">Verification token</label>
+            <textarea class="textarea" id="token" placeholder="Paste your verification token here…" style="min-height:88px; font-family:var(--mono); font-size:13px;">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…</textarea>
+          </div>
+
+          <button class="btn btn--primary btn--block" type="submit">Verify email</button>
+        </form>
+
+        <p class="auth__alt">Wrong account? <a href="register.html">Register again</a></p>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

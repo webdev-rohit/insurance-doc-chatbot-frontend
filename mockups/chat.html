@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat — Insurance Doc Chatbot</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ===== Sidebar (app nav) ===== -->
+    <aside class="sidebar">
+      <a class="brand" href="index.html">
+        <span class="brand__logo">🛡️</span>
+        <span>Insurance Bot<small>Workspace</small></span>
+      </a>
+      <nav class="nav">
+        <a class="nav__item nav__item--active" href="chat.html"><span class="nav__icon">💬</span> Chat</a>
+        <a class="nav__item" href="documents.html"><span class="nav__icon">📄</span> Documents</a>
+      </nav>
+      <div class="sidebar__spacer"></div>
+      <div class="sidebar__user">
+        <span class="avatar">JD</span>
+        <div class="meta">
+          <strong>John Doe</strong>
+          <span>john.doe@example.com</span>
+        </div>
+        <button class="btn btn--icon btn--subtle" title="Log out" style="background:transparent;color:#8e8ea0;">⎋</button>
+      </div>
+    </aside>
+
+    <!-- ===== Chat area (two columns: conversations + thread) ===== -->
+    <div class="chat" style="min-width:0;">
+
+      <!-- Conversations list -->
+      <section class="convos">
+        <div class="convos__head">
+          <button class="btn btn--primary btn--block" type="button">＋ New chat</button>
+        </div>
+
+        <div class="convos__list">
+          <div class="row between" style="padding:8px 12px;">
+            <span class="section-title">Recent</span>
+            <button class="btn btn--danger-ghost btn--sm" type="button" title="Delete all chats" style="padding:4px 8px;">🗑 Delete all</button>
+          </div>
+
+          <div class="convo convo--active">
+            <span>💬</span>
+            <div class="convo__body">
+              <div class="convo__title">Term life policy questions</div>
+              <div class="convo__meta">Updated 10:42</div>
+            </div>
+            <div class="convo__actions">
+              <button title="Rename">✎</button>
+              <button title="Delete">🗑</button>
+            </div>
+          </div>
+
+          <div class="convo">
+            <span>💬</span>
+            <div class="convo__body">
+              <div class="convo__title">Motor claim excess &amp; deductibles</div>
+              <div class="convo__meta">Yesterday</div>
+            </div>
+            <div class="convo__actions">
+              <button title="Rename">✎</button>
+              <button title="Delete">🗑</button>
+            </div>
+          </div>
+
+          <div class="convo">
+            <span>💬</span>
+            <div class="convo__body">
+              <div class="convo__title">Grace period &amp; renewal terms</div>
+              <div class="convo__meta">Jul 7</div>
+            </div>
+            <div class="convo__actions">
+              <button title="Rename">✎</button>
+              <button title="Delete">🗑</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Message thread -->
+      <section class="thread">
+        <header class="thread__head">
+          <div class="row gap-12">
+            <strong>Term life policy questions</strong>
+            <span class="classify-tag" title="Detected topic of the latest message">insurance</span>
+          </div>
+          <div class="row gap-8">
+            <button class="btn btn--ghost btn--sm" type="button" title="Rename conversation">✎ Rename</button>
+            <button class="btn btn--danger-ghost btn--sm" type="button" title="Delete conversation">🗑 Delete</button>
+          </div>
+        </header>
+
+        <div class="thread__scroll">
+          <div class="thread__inner">
+
+            <!-- User -->
+            <div class="msg msg--user">
+              <div class="msg__body" style="margin-left:auto; max-width:80%;">
+                <div class="msg__name" style="text-align:right;">You</div>
+                <div class="bubble">What is the grace period for premium payment on this policy?</div>
+              </div>
+              <span class="msg__avatar">JD</span>
+            </div>
+
+            <!-- Bot -->
+            <div class="msg msg--bot">
+              <span class="msg__avatar">🛡️</span>
+              <div class="msg__body" style="max-width:80%;">
+                <div class="msg__name">Insurance Bot</div>
+                <div class="bubble">
+                  <p>The grace period for premium payment is <b>30 days</b> from the premium due date for policies with yearly, half-yearly or quarterly modes, and <b>15 days</b> for the monthly mode.</p>
+                  <p>During the grace period the policy stays in force; if the premium is not paid by the end of it, the policy lapses.</p>
+                </div>
+                <!-- Retrieved chunks that grounded the answer -->
+                <div class="sources">
+                  <span class="text-sm text-muted">Sources:</span>
+                  <span class="source-chip">📄 <b>Page 12</b></span>
+                  <span class="source-chip">📄 <b>Page 13</b></span>
+                  <span class="source-chip">📄 <b>Page 27</b></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- User -->
+            <div class="msg msg--user">
+              <div class="msg__body" style="margin-left:auto; max-width:80%;">
+                <div class="msg__name" style="text-align:right;">You</div>
+                <div class="bubble">And what happens if I miss it entirely?</div>
+              </div>
+              <span class="msg__avatar">JD</span>
+            </div>
+
+            <!-- Bot typing indicator (loading state) -->
+            <div class="msg msg--bot">
+              <span class="msg__avatar">🛡️</span>
+              <div class="msg__body">
+                <div class="msg__name">Insurance Bot</div>
+                <div class="bubble text-muted">Thinking…</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Composer -->
+        <div class="composer">
+          <div class="composer__inner">
+            <div class="composer__box">
+              <textarea rows="1" placeholder="Ask about your policy…">And what happens if I miss it entirely?</textarea>
+              <button class="btn btn--primary btn--icon" type="button" title="Send" style="width:40px;height:40px;">➤</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===== Rename modal (static example — normally hidden) ===== -->
+  <div class="modal-backdrop">
+    <div class="modal">
+      <div class="modal__body">
+        <h3 class="modal__title">Rename conversation</h3>
+        <p class="modal__text">Give this chat a clearer title.</p>
+        <div class="field mt-16">
+          <label class="label" for="newname">Conversation name</label>
+          <input class="input" id="newname" type="text" value="Term life policy questions" />
+        </div>
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" type="button">Cancel</button>
+        <button class="btn btn--primary" type="button">Save name</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

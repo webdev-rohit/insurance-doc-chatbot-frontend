@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Insurance Doc Chatbot — Screens</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .overview { max-width: 1040px; margin: 0 auto; padding: 56px 24px 64px; }
+    .overview__head { text-align: center; margin-bottom: 40px; }
+    .overview__head h1 { font-size: 30px; }
+    .overview__head p { color: var(--muted); margin-top: 10px; font-size: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .mock-card { display: flex; flex-direction: column; padding: 22px; text-decoration: none; color: inherit; transition: box-shadow .15s, transform .1s, border-color .15s; }
+    .mock-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--primary-100); text-decoration: none; }
+    .mock-card__top { display: flex; align-items: center; gap: 12px; }
+    .mock-card__ico { width: 42px; height: 42px; border-radius: 11px; background: var(--primary-50); color: var(--primary-700); display: grid; place-items: center; font-size: 20px; flex: none; }
+    .mock-card h3 { font-size: 16.5px; }
+    .mock-card p { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+    .group-label { grid-column: 1 / -1; margin: 18px 0 -4px; }
+  </style>
+</head>
+<body>
+  <div class="overview">
+    <div class="overview__head">
+      <div class="brand" style="justify-content:center; margin-bottom:16px;">
+        <span class="brand__logo">🛡️</span>
+        <span>Insurance Doc Chatbot<small>Screens overview</small></span>
+      </div>
+      <h1>Product screens</h1>
+      <p>Browse each screen of the Insurance Doc Chatbot experience.</p>
+    </div>
+
+    <div class="grid">
+      <div class="group-label section-title">Get started</div>
+
+      <a class="card mock-card" href="login.html">
+        <div class="mock-card__top">
+          <span class="mock-card__ico">🔑</span>
+          <div><h3>Login</h3><p>Sign in to your workspace</p></div>
+        </div>
+      </a>
+
+      <a class="card mock-card" href="register.html">
+        <div class="mock-card__top">
+          <span class="mock-card__ico">📝</span>
+          <div><h3>Register</h3><p>Create a new account</p></div>
+        </div>
+      </a>
+
+      <a class="card mock-card" href="verify-email.html">
+        <div class="mock-card__top">
+          <span class="mock-card__ico">✉️</span>
+          <div><h3>Verify email</h3><p>Confirm your account</p></div>
+        </div>
+      </a>
+
+      <a class="card mock-card" href="forgot-password.html">
+        <div class="mock-card__top">
+          <span class="mock-card__ico">🔓</span>
+          <div><h3>Forgot password</h3><p>Request a reset link</p></div>
+        </div>
+      </a>
+
+      <a class="card mock-card" href="reset-password.html">
+        <div class="mock-card__top">
+          <span class="mock-card__ico">🔁</span>
+          <div><h3>Reset password</h3><p>Set a new password</p></div>
+        </div>
+      </a>
+
+      <div class="group-label section-title">Workspace</div>
+
+      <a class="card mock-card" href="chat.html">
+        <div class="mock-card__top">
+          <span class="mock-card__ico">💬</span>
+          <div><h3>Chat</h3><p>Ask questions about your policies</p></div>
+        </div>
+      </a>
+
+      <a class="card mock-card" href="documents.html">
+        <div class="mock-card__top">
+          <span class="mock-card__ico">📄</span>
+          <div><h3>Documents</h3><p>Upload and manage your PDFs</p></div>
+        </div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documents — Insurance Doc Chatbot</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+      <a class="brand" href="index.html">
+        <span class="brand__logo">🛡️</span>
+        <span>Insurance Bot<small>Workspace</small></span>
+      </a>
+      <nav class="nav">
+        <a class="nav__item" href="chat.html"><span class="nav__icon">💬</span> Chat</a>
+        <a class="nav__item nav__item--active" href="documents.html"><span class="nav__icon">📄</span> Documents</a>
+      </nav>
+      <div class="sidebar__spacer"></div>
+      <div class="sidebar__user">
+        <span class="avatar">JD</span>
+        <div class="meta">
+          <strong>John Doe</strong>
+          <span>john.doe@example.com</span>
+        </div>
+        <button class="btn btn--icon btn--subtle" title="Log out" style="background:transparent;color:#8e8ea0;">⎋</button>
+      </div>
+    </aside>
+
+    <!-- ===== Main ===== -->
+    <div class="main">
+      <header class="topbar">
+        <div>
+          <h1>Documents</h1>
+          <div class="topbar__sub">Upload and manage your insurance policy PDFs</div>
+        </div>
+        <div class="row gap-12">
+          <span class="badge badge--muted"><span class="badge__dot"></span> 3 documents</span>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="content--narrow">
+
+          <!-- ===== Upload ===== -->
+          <div class="card" style="margin-bottom:24px;">
+            <div class="card__body">
+              <div class="dropzone">
+                <div class="dropzone__icon">⬆️</div>
+                <h3>Drop a PDF here, or click to browse</h3>
+                <p>PDF only · up to 50&nbsp;MB. Processing runs in the background after upload.</p>
+                <button class="btn btn--primary mt-16" type="button">Choose file</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== In-flight example ===== -->
+          <div class="card" style="margin-bottom:24px;">
+            <div class="card__header">
+              <div class="row gap-12">
+                <span style="font-size:20px;">📄</span>
+                <div>
+                  <div class="cell-title">Health-insurance-plan-2026.pdf</div>
+                  <div class="text-sm text-muted">Uploaded just now</div>
+                </div>
+              </div>
+              <span class="badge badge--warning"><span class="badge__dot"></span> Extracting</span>
+            </div>
+            <div class="card__body">
+              <div class="progress"><div class="progress__bar" style="width:45%"></div></div>
+              <div class="row between mt-8">
+                <span class="text-sm text-muted">Extracting text &amp; tables…</span>
+                <span class="text-sm text-muted">This can take a minute</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Documents table ===== -->
+          <div class="card">
+            <div class="card__header">
+              <h3 class="card__title">Your documents</h3>
+              <div class="row gap-8">
+                <button class="btn btn--ghost btn--sm" type="button">↻ Refresh</button>
+                <button class="btn btn--danger-ghost btn--sm" type="button" title="Delete all documents">🗑 Delete all</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Document</th>
+                    <th>Status</th>
+                    <th>Chunks</th>
+                    <th>Uploaded</th>
+                    <th style="text-align:right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><div class="cell-title">Term-life-policy-doc.pdf</div></td>
+                    <td><span class="badge badge--success"><span class="badge__dot"></span> Completed</span></td>
+                    <td>317</td>
+                    <td class="text-muted">Jul 9, 2026 · 10:15</td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn btn--subtle btn--sm" type="button" title="Download">⬇ Download</button>
+                        <button class="btn btn--danger-ghost btn--sm" type="button" title="Delete">🗑</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><div class="cell-title">Motor-insurance-policy.pdf</div></td>
+                    <td><span class="badge badge--success"><span class="badge__dot"></span> Completed</span></td>
+                    <td>206</td>
+                    <td class="text-muted">Jul 8, 2026 · 16:40</td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn btn--subtle btn--sm" type="button">⬇ Download</button>
+                        <button class="btn btn--danger-ghost btn--sm" type="button">🗑</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="row--failed">
+                    <td><div class="cell-title">Home-insurance-2025.pdf</div></td>
+                    <td><span class="badge badge--danger"><span class="badge__dot"></span> Failed</span></td>
+                    <td>—</td>
+                    <td class="text-muted">Jul 7, 2026 · 09:02</td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="btn btn--subtle btn--sm" type="button" disabled title="Only available when completed">⬇ Download</button>
+                        <button class="btn btn--danger-ghost btn--sm" type="button">🗑</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Delete confirmation modal (static example — normally hidden) ===== -->
+  <div class="modal-backdrop">
+    <div class="modal">
+      <div class="modal__body">
+        <div class="dropzone__icon" style="margin:0 0 14px; background:var(--danger-bg); color:var(--danger);">🗑</div>
+        <h3 class="modal__title">Delete this document?</h3>
+        <p class="modal__text">This permanently removes <b>Term-life-policy-doc.pdf</b> and everything indexed from it. This can’t be undone.</p>
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" type="button">Cancel</button>
+        <button class="btn btn--danger" type="button">Delete document</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
