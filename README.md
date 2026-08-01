@@ -6,6 +6,22 @@ built to integrate directly with the FastAPI backend documented in
 UI implements the handoff mockups in [`mockups/`](./mockups) (ChatGPT-inspired
 theme — clean neutrals, dark sidebar, green accent) using the same design tokens.
 
+## Backend services
+
+The backend is deployed as **two independent Cloud Run services** rather than
+one monolith, split along the same line the API docs already draw:
+
+| Service         | Deployed URL | Paths it owns |
+|-----------------|--------------|----------------|
+| **Ingestion**   | https://insurance-ingestion-591946978201.asia-south1.run.app ([docs](https://insurance-ingestion-591946978201.asia-south1.run.app/docs)) | `/ingestion*` |
+| **Query**       | https://insurance-query-591946978201.asia-south1.run.app ([docs](https://insurance-query-591946978201.asia-south1.run.app/docs)) | `/auth*`, `/query*`, `/chat*` |
+
+The API client (`src/api/client.ts`) picks the base URL **per-request by path
+prefix** — `resolveBaseUrl()` routes anything starting with `/ingestion` to the
+ingestion service and everything else to the query service — so the rest of
+the app (`api/auth.ts`, `api/chat.ts`, `api/query.ts`, `api/ingestion.ts`)
+doesn't need to know or care that it's talking to two different origins.
+
 ## Screens
 
 | Route              | Screen           | Backend endpoints used |
@@ -24,41 +40,90 @@ theme — clean neutrals, dark sidebar, green accent) using the same design toke
 # 1. Install dependencies
 npm install
 
-# 2. Configure the backend URL
-cp .env.example .env        # optional — the defaults work for local dev
-
-# 3. Run the dev server (proxies /auth, /ingestion, /query, /chat → backend)
+# 2. Run the dev server — proxies /auth, /ingestion, /query, /chat to a LOCAL
+#    backend at http://localhost:8000 (see .env.development)
 npm run dev                 # http://localhost:5173
 ```
 
-Make sure the FastAPI backend is running at `http://localhost:8000` (or point
-`VITE_DEV_PROXY_TARGET` at wherever it lives). In dev, API calls are same-origin
-and forwarded by the Vite proxy, so **no CORS configuration is required**.
+Make sure a local backend is running at `http://localhost:8000` (per
+`Backend_docs/`). API calls are same-origin and forwarded by the Vite proxy,
+so **no CORS configuration is required** in dev.
 
 ### Production build
 
 ```bash
-npm run build     # type-checks then emits static assets to dist/
-npm run preview   # serve the built app locally
+# Type-checks, builds static assets into dist/ using .env.production
+# (the two deployed Cloud Run URLs baked in)
+npm run build
 ```
 
-For a deployed build the SPA and API are usually on different origins, so set
-`VITE_API_BASE_URL` to the backend origin (e.g. `https://api.example.com`) and
-ensure the backend's `CORS_ORIGINS` includes the SPA's origin.
+A production build calls the two backend services **directly** — there's no
+dev proxy — so each service's CORS config must allow the SPA's origin. See
+[Deploying to Cloud Run](#deploying-to-cloud-run) below to ship it — the
+frontend is already live there, so this build step normally runs inside the
+Docker image, not by hand.
+
+### Switching which env file is used
+
+Vite loads env files by **mode**, automatically — no manual copying:
+
+| Command                    | Mode          | File loaded        |
+|-----------------------------|---------------|---------------------|
+| `npm run dev`               | `development` | `.env.development` |
+| `npm run build` / `npm run preview` | `production`  | `.env.production`  |
+
+`.env` holds defaults shared by every mode (left empty by default); values in
+the mode-specific file always win. See `.env.example` for what each variable
+does before editing `.env.development` / `.env.production`.
+
+## Deploying to Cloud Run
+
+The SPA ships as a container: a multi-stage `Dockerfile` builds the static
+assets (using `.env.production`, so the two backend URLs are baked in) and
+serves them with **nginx**, listening on the `$PORT` Cloud Run injects
+(`nginx.conf.template` is envsubst'd by nginx's own entrypoint — no extra
+scripting needed).
+
+```bash
+# One-time: pick the GCP project this deploys into
+gcloud config set project <PROJECT_ID>
+
+# Build the image remotely (Cloud Build — no local Docker required)
+gcloud builds submit --tag gcr.io/<PROJECT_ID>/insurance-frontend
+
+# Deploy it
+gcloud run deploy insurance-frontend \
+  --image gcr.io/<PROJECT_ID>/insurance-frontend \
+  --region asia-south1 \
+  --allow-unauthenticated \
+  --port 8080
+```
+
+After the first deploy, **add the frontend's Cloud Run URL to both backend
+services' CORS allow-list** (`CORS_ORIGINS` per `Backend_docs/`) — the
+built SPA calls the ingestion/query services directly, cross-origin, with no
+proxy in front of it in production.
+
+To ship a config change (e.g. a new backend URL), edit `.env.production` and
+re-run both commands above — Cloud Build always rebuilds from source, so
+there's no separate "redeploy" step.
 
 ## Environment variables
 
-| Variable                | Purpose |
-|-------------------------|---------|
-| `VITE_API_BASE_URL`     | Backend origin the SPA calls at runtime. Leave **empty** to use the dev proxy (same-origin). Set for deployed builds. |
-| `VITE_DEV_PROXY_TARGET` | Where `npm run dev` forwards API calls. Default `http://localhost:8000`. |
+| Variable                             | Purpose |
+|---------------------------------------|---------|
+| `VITE_INGESTION_API_BASE_URL`        | Ingestion service origin (`/ingestion*`). Empty in `.env.development` (dev proxy handles it); set to the Cloud Run URL in `.env.production`. |
+| `VITE_QUERY_API_BASE_URL`            | Query service origin (`/auth*`, `/query*`, `/chat*`). Empty in `.env.development`; set to the Cloud Run URL in `.env.production`. |
+| `VITE_DEV_PROXY_INGESTION_TARGET`    | Where `npm run dev` forwards `/ingestion*` calls. `.env.development` sets this to `http://localhost:8000`. Ignored in production. |
+| `VITE_DEV_PROXY_QUERY_TARGET`        | Where `npm run dev` forwards `/auth*`, `/query*`, `/chat*` calls. `.env.development` sets this to `http://localhost:8000`. Ignored in production. |
 
 ## Architecture
 
 ```
 src/
 ├── api/            # typed client + one module per backend area
-│   ├── client.ts   # fetch wrapper: POST-only, bearer auth, FastAPI error parsing, 401 handling
+│   ├── client.ts   # fetch wrapper: POST-only, per-path base URL routing (ingestion vs. query
+│   │               #   service), bearer auth, FastAPI error parsing, 401 handling
 │   ├── types.ts    # request/response types mirrored from the API docs
 │   ├── auth.ts  ingestion.ts  chat.ts  query.ts
 ├── context/
@@ -75,6 +140,11 @@ src/
 - **Every endpoint is `POST`.** The client's `action()` helper sends the optional
   `ingestion_id` / `convo_id` as **query params** on a POST with an empty body,
   matching the API's "omit id ⇒ all/latest" convention.
+- **Two backends, one client.** `client.ts` resolves the base URL per-request
+  from the path prefix (`/ingestion*` → ingestion service, everything else →
+  query service — see [Backend services](#backend-services)), so callers in
+  `api/*.ts` just use the same relative paths from the API docs regardless of
+  which service actually serves them.
 - **Auth** — the JWT access token is stored in `localStorage` and sent as
   `Authorization: Bearer …`. Any `401` on an authenticated call clears the
   session and redirects to `/login`. The register/forgot flows carry the

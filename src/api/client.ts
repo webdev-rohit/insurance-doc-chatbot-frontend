@@ -8,7 +8,17 @@
    - Errors follow FastAPI's shape: { detail: string | ValidationError[] }.
    ========================================================================== */
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+// The backend is split across two independently-deployed services:
+// - Ingestion service: only the `/ingestion*` paths.
+// - Query service: everything else (`/auth*`, `/query*`, `/chat*`).
+// Each is configured via its own base URL env var; both default to '' so dev
+// keeps using the same-origin Vite proxy (see vite.config.ts).
+const INGESTION_BASE_URL = (import.meta.env.VITE_INGESTION_API_BASE_URL ?? '').replace(/\/$/, '');
+const QUERY_BASE_URL = (import.meta.env.VITE_QUERY_API_BASE_URL ?? '').replace(/\/$/, '');
+
+function resolveBaseUrl(path: string): string {
+  return path.startsWith('/ingestion') ? INGESTION_BASE_URL : QUERY_BASE_URL;
+}
 
 const TOKEN_KEY = 'idc.access_token';
 
@@ -78,7 +88,7 @@ interface RequestOptions {
 async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const { json, body, query, auth = true, blob = false, signal } = opts;
 
-  const url = new URL(BASE_URL + path, window.location.origin);
+  const url = new URL(resolveBaseUrl(path) + path, window.location.origin);
   if (query) {
     for (const [k, v] of Object.entries(query)) {
       if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);

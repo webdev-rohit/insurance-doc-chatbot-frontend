@@ -1,0 +1,13 @@
+server {
+    listen ${PORT};
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # SPA fallback — client-side routes (e.g. /chat, /login) are served
+    # index.html and handled by React Router instead of 404ing.
+    location / {
+        try_files $uri /index.html;
+    }
+}
