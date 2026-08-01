@@ -427,6 +427,36 @@ always a **list** of `ShowChatResponse`.
 
 ---
 
+### POST `/chat/load-history`
+Load the full, chronologically-ordered message history for a conversation, so
+a client can replay it up to the most recent point.
+
+**Query params**
+| Param      | Type | Required | Description                 |
+|------------|------|----------|-----------------------------|
+| `convo_id` | UUID | yes      | Conversation to load        |
+
+**Response `200`** — `LoadHistoryResponse`
+```json
+{
+  "convo_id": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "Term life policy questions",
+  "messages": [
+    {
+      "id": "6e1b1f2a-2f3a-4c9a-8f1a-1a2b3c4d5e6f",
+      "query_type": "insurance",
+      "input_text": "What is the grace period for premium payment?",
+      "response_text": "The grace period for premium payment is 30 days...",
+      "created_at": "2026-07-09T10:15:30"
+    }
+  ]
+}
+```
+
+**Errors:** `404` no chat record found · `422` malformed `convo_id` · `500` unexpected error.
+
+---
+
 ### POST `/chat/delete`
 Delete conversations and their associated queries (and query context/usage).
 With no `convo_id`, deletes **all** of the user's conversations; with one,
@@ -497,6 +527,15 @@ Validation errors (`422`) return the standard FastAPI list of field errors:
 | `output_tokens`   | int  | Generated (candidate) tokens                       |
 | `thinking_tokens` | int  | Reasoning tokens (0 for non-thinking models)       |
 | `total_tokens`    | int  | Total tokens for the request                       |
+
+### QueryHistoryItem
+| Field           | Type          | Description                              |
+|-----------------|---------------|-------------------------------------------|
+| `id`            | UUID          | Query record id                          |
+| `query_type`    | string \| null| `general`, `insurance`, or `other`       |
+| `input_text`    | string \| null| The user's question                      |
+| `response_text` | string \| null| The generated answer                     |
+| `created_at`    | datetime      | When the exchange was recorded           |
 
 ### IngestionStatus (enum)
 `pending` → `uploaded` → `extracting` → `extracted` → `indexing` → `indexed` →

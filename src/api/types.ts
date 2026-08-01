@@ -85,3 +85,15 @@ export interface Conversation {
 export interface MessageResponse {
   message: string;
 }
+export interface QueryHistoryItem {
+  id: string;
+  query_type: 'general' | 'insurance' | 'other' | null;
+  input_text: string | null;
+  response_text: string | null;
+  created_at: string;
+}
+export interface LoadHistoryResponse {
+  convo_id: string;
+  title: string;
+  messages: QueryHistoryItem[];
+}

@@ -1,6 +1,7 @@
 import { api } from './client';
 import type {
   Conversation,
+  LoadHistoryResponse,
   MessageResponse,
   NewChatResponse,
   RenameChatResponse,
@@ -16,6 +17,10 @@ export const chatApi = {
   /** List all conversations (no id) or a single one — always returns a list. */
   show: (convoId?: string) =>
     api.action<Conversation[]>('/chat/show', { convo_id: convoId }),
+
+  /** Full message history for a conversation, chronologically ordered. */
+  loadHistory: (convoId: string) =>
+    api.action<LoadHistoryResponse>('/chat/load-history', { convo_id: convoId }),
 
   /** Delete all (no id) or a single conversation. */
   delete: (convoId?: string) =>

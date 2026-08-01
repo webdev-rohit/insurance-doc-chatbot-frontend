@@ -69,12 +69,13 @@ response models), so malformed IDs are rejected automatically with a `422`.
 | POST   | `/text` | Ask a text question within a conversation (`convo_id`)|
 
 ### Chat — `/chat` *(auth required)*
-| Method | Path      | Description                                     |
-|--------|-----------|-------------------------------------------------|
-| POST   | `/new`    | Create a new conversation                       |
-| POST   | `/rename` | Rename a conversation                           |
-| POST   | `/show`   | List all conversations, or one by `convo_id`    |
-| POST   | `/delete` | Delete all conversations, or one by `convo_id`  |
+| Method | Path            | Description                                     |
+|--------|-----------------|-------------------------------------------------|
+| POST   | `/new`          | Create a new conversation                       |
+| POST   | `/rename`       | Rename a conversation                           |
+| POST   | `/show`         | List all conversations, or one by `convo_id`    |
+| POST   | `/load-history` | Load the full message history for a `convo_id`  |
+| POST   | `/delete`       | Delete all conversations, or one by `convo_id`  |
 
 Authenticated endpoints expect a `Bearer <access_token>` header.
 
@@ -143,10 +144,11 @@ All IDs are `UUID`. Deleting a chat or ingestion cascades to its dependent rows.
 - **Framework:** FastAPI, Uvicorn
 - **ORM / DB:** SQLAlchemy 2.x, PostgreSQL with `pgvector`, Alembic
 - **Cloud (GCP):** Cloud SQL (via `cloud-sql-python-connector` + `pg8000`),
-  Cloud Storage, Vertex AI (Gemini embedding + generation models)
+  Cloud Storage, Vertex AI (Gemini embedding + generation models via
+  `google-genai`), Cloud Run, Artifact Registry, Cloud Build
 - **Auth:** JWT (PyJWT), bcrypt password hashing
 - **Email:** SendGrid
-- **PDF processing:** PyMuPDF (`fitz`), pdfplumber, docling
+- **PDF processing:** PyMuPDF (`fitz`), pdfplumber
 - **Validation/Config:** Pydantic v2, pydantic-settings
 
 ---
@@ -210,11 +212,86 @@ The API runs at `http://localhost:8000`. Interactive docs are available at
 
 ---
 
+## Deployment
+
+In production this backend runs as **two independent Cloud Run services**
+rather than the single combined app used for local dev:
+
+| Service            | Entrypoint          | Routers mounted          | Dockerfile              |
+|---------------------|-----------------------|-----------------------------|----------------------------|
+| Query service        | `main_query.py`       | `auth`, `query`, `chat`    | `Dockerfile.query`       |
+| Ingestion service      | `main_ingestion.py`   | `ingestion`                | `Dockerfile.ingestion`   |
+
+`main.py` (mounting all four routers together) is kept only for local,
+single-process dev convenience — it isn't deployed.
+
+The split follows the actual code dependencies rather than a naive 1:1 router
+mapping: `query`'s service layer imports `chat`'s repository directly, so
+those two can't be separated; `auth` lives with the query service since
+that's the only place tokens are issued. The ingestion service never mounts
+the auth router — it only *verifies* JWTs via a stateless `jwt.decode()`
+(`apps/core/global_utils.py`), so both services independently trust tokens
+issued by the query service as long as they share the same `SECRET_KEY`.
+
+### Local Docker
+
+```bash
+docker build -f Dockerfile.query -t insurance-query:local .
+docker build -f Dockerfile.ingestion -t insurance-ingestion:local .
+
+docker run --rm -p 8000:8000 --env-file .env \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/gcp/adc.json \
+  -v <path-to-your-adc-credentials.json>:/gcp/adc.json:ro \
+  insurance-query:local
+```
+
+Both containers listen on `PORT` (default `8000` — see `settings.port` in
+`apps/core/config.py`, which Cloud Run overrides automatically at runtime);
+map to different host ports to run both at once. GCP calls (Cloud SQL, GCS,
+Vertex AI) need Application Default Credentials mounted in, since a container
+can't see your host's `gcloud auth application-default login` credentials by
+default.
+
+### Cloud Run
+
+Images are built via Cloud Build (`cloudbuild.query.yaml`,
+`cloudbuild.ingestion.yaml` — needed because `gcloud builds submit --tag`
+only works with a file literally named `Dockerfile`) and deployed with
+`gcloud run deploy --env-vars-file=deploy-env.yaml` (a git-ignored file
+holding every `.env` value except `PORT`, which Cloud Run reserves and
+injects itself via the `--port` flag).
+
+Two Cloud Run-specific settings matter for the ingestion service in
+particular:
+
+- **`--memory=1Gi`** — the platform's 512Mi default isn't enough headroom for
+  PyMuPDF/pdfplumber PDF parsing; Cloud Run kills the container outright (no
+  catchable exception, no `error_message`) if it's exceeded.
+- **`--no-cpu-throttling`** — ingestion returns `202` immediately and does
+  the real work in a `BackgroundTasks` job after the response; Cloud Run
+  throttles CPU to near-zero once it considers a request "done" unless this
+  is set.
+
+Full step-by-step (GCP project setup, IAM, build/deploy commands, and the
+issues hit along the way) is documented in `docs/Deployment_Steps.docx` —
+not committed to git (`docs/` is git-ignored), so it stays local
+documentation only.
+
+---
+
 ## Project structure
 
 ```
 backend/
-├── main.py                  # FastAPI app; mounts all routers + CORS
+├── main.py                  # combined FastAPI app (local dev only — all routers + CORS)
+├── main_query.py            # Cloud Run entrypoint: auth + query + chat
+├── main_ingestion.py        # Cloud Run entrypoint: ingestion only
+├── Dockerfile.query
+├── Dockerfile.ingestion
+├── .dockerignore
+├── cloudbuild.query.yaml    # Cloud Build config (custom Dockerfile name)
+├── cloudbuild.ingestion.yaml
+├── deploy-env.yaml          # gcloud run deploy --env-vars-file (git-ignored)
 ├── pyproject.toml
 ├── .env.example
 └── apps/

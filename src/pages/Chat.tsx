@@ -8,13 +8,7 @@ import { ApiError } from '../api/client';
 import type { Conversation, TokenUsage } from '../api/types';
 import { formatRelative } from '../lib/format';
 import { renderInlineBold } from '../lib/markdown';
-import {
-  clearMessages,
-  loadMessages,
-  newMessageId,
-  saveMessages,
-  type ChatMessage,
-} from '../lib/chatStore';
+import { historyToMessages, newMessageId, type ChatMessage } from '../lib/chatMessages';
 
 const titleOr = (t: string) => (t && t.trim() ? t : 'New conversation');
 
@@ -25,6 +19,7 @@ export function Chat() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingConvos, setLoadingConvos] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
   const [draft, setDraft] = useState('');
 
@@ -67,10 +62,35 @@ export function Chat() {
     void fetchConvos(true);
   }, [fetchConvos]);
 
-  // ---- Load messages when active conversation changes ----------------------
+  // ---- Load message history when active conversation changes ---------------
   useEffect(() => {
-    setMessages(activeId ? loadMessages(activeId) : []);
-  }, [activeId]);
+    if (!activeId) {
+      setMessages([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingMessages(true);
+    chatApi
+      .loadHistory(activeId)
+      .then((res) => {
+        if (!cancelled) setMessages(historyToMessages(res.messages));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 404) {
+          setMessages([]);
+          return;
+        }
+        toast.error(err instanceof ApiError ? err.message : 'Failed to load conversation history.');
+        setMessages([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingMessages(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId, toast]);
 
   // ---- Autoscroll on new messages -----------------------------------------
   useEffect(() => {
@@ -85,11 +105,6 @@ export function Chat() {
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, [draft]);
-
-  const persist = useCallback((convoId: string, next: ChatMessage[]) => {
-    setMessages(next);
-    saveMessages(convoId, next);
-  }, []);
 
   // ---- New chat ------------------------------------------------------------
   const newChat = async () => {
@@ -127,7 +142,7 @@ export function Chat() {
 
     const userMsg: ChatMessage = { id: newMessageId(), role: 'user', text, createdAt: Date.now() };
     const withUser = [...messages, userMsg];
-    persist(convoId, withUser);
+    setMessages(withUser);
     setDraft('');
     setSending(true);
 
@@ -140,7 +155,7 @@ export function Chat() {
         usage: res.token_usage,
         createdAt: Date.now(),
       };
-      persist(convoId, [...withUser, botMsg]);
+      setMessages([...withUser, botMsg]);
 
       // Give brand-new conversations a title from the first question.
       if (isFirstMessage) {
@@ -166,7 +181,7 @@ export function Chat() {
         error: true,
         createdAt: Date.now(),
       };
-      persist(convoId, [...withUser, botErr]);
+      setMessages([...withUser, botErr]);
     } finally {
       setSending(false);
     }
@@ -217,14 +232,12 @@ export function Chat() {
     try {
       if (confirmDelete === 'all') {
         await chatApi.delete();
-        convos.forEach((c) => clearMessages(c.id));
         setConvos([]);
         setActiveId(null);
         setMessages([]);
         toast.success('All conversations deleted.');
       } else {
         await chatApi.delete(confirmDelete.id);
-        clearMessages(confirmDelete.id);
         const remaining = convos.filter((c) => c.id !== confirmDelete.id);
         setConvos(remaining);
         if (activeId === confirmDelete.id) {
@@ -313,7 +326,11 @@ export function Chat() {
 
         <div className="thread__scroll" ref={scrollRef}>
           <div className="thread__inner">
-            {messages.length === 0 && !sending ? (
+            {loadingMessages ? (
+              <div className="convo--loading">
+                <Spinner /> Loading conversation…
+              </div>
+            ) : messages.length === 0 && !sending ? (
               <div className="empty">
                 <div className="empty__icon">💬</div>
                 <h3>Ask about your policy</h3>

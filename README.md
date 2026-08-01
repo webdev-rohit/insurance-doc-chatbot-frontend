@@ -32,7 +32,7 @@ doesn't need to know or care that it's talking to two different origins.
 | `/forgot-password` | Forgot password  | `POST /auth/forgot-password` |
 | `/reset-password`  | Reset password   | `POST /auth/reset-password` |
 | `/documents`       | Documents        | `POST /ingestion`, `/ingestion/status`, `/ingestion/show`, `/ingestion/download`, `/ingestion/delete` |
-| `/chat`            | Chat (policy Q&A)| `POST /chat/new`, `/chat/rename`, `/chat/show`, `/chat/delete`, `/query/text` |
+| `/chat`            | Chat (policy Q&A)| `POST /chat/new`, `/chat/rename`, `/chat/show`, `/chat/load-history`, `/chat/delete`, `/query/text` |
 
 ## Getting started
 
@@ -131,7 +131,7 @@ src/
 │   └── ToastContext.tsx  # transient notifications
 ├── components/     # AppLayout (sidebar), Modal, Alert, Spinner, route guards, …
 ├── pages/          # one component per screen
-├── lib/            # formatting, JWT decode, client-side chat message cache
+├── lib/            # formatting, JWT decode, chat history → message-list mapping
 └── styles.css      # the mockups' design system, verbatim + a few live-state additions
 ```
 
@@ -155,11 +155,13 @@ src/
 - **Chat** — `/query/text` returns only `answer` + `token_usage` (no source
   chunks or classification), so the thread renders the answer text with the
   token counts tucked behind a **"Show tokens"** toggle per message (rather than
-  always shown). Because the backend exposes **no endpoint to read a
-  conversation's past messages**, rendered messages are cached in `localStorage`
-  per conversation so threads survive reloads. New conversations are auto-titled
-  from the first question via `/chat/rename`. Bot answers are run through a
-  small inline-markdown renderer (`lib/markdown.tsx`) so `**bold**` from the LLM
+  always shown). Selecting a conversation calls **`/chat/load-history`** to
+  fetch its full message history from the backend (`lib/chatMessages.ts`
+  converts the flat `query`/`response` pairs into one chat bubble per side);
+  there's no client-side caching of message content, so the thread is
+  consistent across browsers/devices. New conversations are auto-titled from
+  the first question via `/chat/rename`. Bot answers are run through a small
+  inline-markdown renderer (`lib/markdown.tsx`) so `**bold**` from the LLM
   renders as `<strong>` instead of literal asterisks — no `dangerouslySetInnerHTML`
   involved, so there's no injection risk from model output.
 - **Dev proxy is POST-only.** The SPA's client-side route `/chat` collides with
@@ -169,8 +171,8 @@ src/
 
 ## Notes / limitations
 
-- Client-side chat history is per-browser (cleared storage or another device
-  starts a thread empty). If the backend later adds a "list messages" endpoint,
-  swap `lib/chatStore.ts` for it in `pages/Chat.tsx`.
+- Historical messages loaded via `/chat/load-history` have no `token_usage`
+  (the backend only returns `input_text`/`response_text` per exchange), so the
+  "Show tokens" toggle only appears on answers from the current session.
 - User profile name is only known when the user registered in this browser (the
   login response carries no profile); otherwise the sidebar shows the email.
